@@ -114,9 +114,10 @@ namespace Warm_Up_Challenge.Controllers
             return View(form);
         }
 
-        // GET: Forms/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, Form post)
         {
+            
+            
             if (id == null)
             {
                 return NotFound();
@@ -128,15 +129,16 @@ namespace Warm_Up_Challenge.Controllers
             {
                 return NotFound();
             }
-
             return View(form);
         }
 
-        // POST: Forms/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, Form post)
         {
+            post.IsDeleted = true;
+            _context.Update(post);
+            _context.SaveChanges();
             var form = await _context.Form.FindAsync(id);
             _context.Form.Remove(form);
             await _context.SaveChangesAsync();

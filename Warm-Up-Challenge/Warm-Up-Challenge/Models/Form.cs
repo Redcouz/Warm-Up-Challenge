@@ -14,10 +14,6 @@ namespace Warm_Up_Challenge.Models
         public string ImageUrl { get; set; }
         public string Category { get; set; }
         public DateTime CreationDate { get; set; }
-
-        public Form()
-        {
-
-        }
+        public bool IsDeleted { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,34 +25,24 @@ namespace Warm_Up_Challenge.Data
             modelBuilder.Entity<Form>()
                 .Property<bool>("IsDeleted");
         }
-        public override int SaveChanges(bool acceptAllChangesOnSuccess)
+        public override int SaveChanges()
         {
-            OnBeforeSaving();
-            return base.SaveChanges(acceptAllChangesOnSuccess);
-        }
+            ChangeTracker.DetectChanges();
 
-        public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            OnBeforeSaving();
-            return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-        }
+            var markedAsDeleted = ChangeTracker.Entries().Where(x => x.State == EntityState.Deleted);
 
-        private void OnBeforeSaving()
-        {
-            foreach (var entry in ChangeTracker.Entries<Form>())
+            foreach (var item in markedAsDeleted)
             {
-                switch (entry.State)
+                if (item.Entity is IIsDeleted entity)
                 {
-                    case EntityState.Added:
-                        entry.CurrentValues["IsDeleted"] = false;
-                        break;
-
-                    case EntityState.Deleted:
-                        entry.State = EntityState.Modified;
-                        entry.CurrentValues["IsDeleted"] = true;
-                        break;
+                    // Set the entity to unchanged (if we mark the whole entity as Modified, every field gets sent to Db as an update)
+                    item.State = EntityState.Unchanged;
+                    // Only update the IsDeleted flag - only this will get sent to the Db
+                    entity.IsDeleted = true;
                 }
             }
+            return base.SaveChanges();
         }
+
     }
 }
